@@ -12,6 +12,9 @@ app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use("/api/", apiLimiter);
 
+app.use("/", (req, res) => {
+  res.send("Welcome to VibeAI Backend!");
+});
 app.use("/api/auth", authRoutes);
 app.use("/api", recommendationRoutes);
 app.use("/api/like", likeRoutes);
