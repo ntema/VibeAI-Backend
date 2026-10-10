@@ -21,15 +21,17 @@ app.use(
 app.use(express.json());
 app.use("/api/", apiLimiter);
 
-app.use("/", (req, res) => {
-  res.send("Welcome to VibeAI Backend!");
-});
+
 app.use("/api/auth", authRoutes);
 app.use("/api", recommendationRoutes);
 app.use("/api/like", likeRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "VibeAI Backend is running" });
+});
+
+app.use("/", (req, res) => {
+  res.send("Welcome to VibeAI Backend!");
 });
 
 module.exports = app;
