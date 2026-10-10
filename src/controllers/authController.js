@@ -1,22 +1,64 @@
-const { registerUser, loginUser } = require("../services/authService");
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const data = await registerUser(name, email, password);
-    res.status(201).json(data);
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const user = await User.create({ name, email, password });
+
+    res.status(201).json({
+      token: generateToken(user._id),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Register error:", error);
+    res.status(500).json({ error: "Server error during registration" });
   }
 };
 
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const data = await loginUser(email, password);
-    res.json(data);
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    res.json({
+      token: generateToken(user._id),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Server error during login" });
   }
 };
 
